@@ -1,0 +1,176 @@
+[build-system]
+requires = ["uv_build>=0.7.19,<0.8.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+default-excludes = true
+module-name = "mflux"
+namespace = true
+source-exclude = [
+    "**/assets/**",
+    "**/models/common/training/_example/images/**",
+    "**/optimization/_loss_derivation/**",
+]
+
+[project]
+name = "mflux"
+version = "0.17.5"
+description = "MLX native implementations of state-of-the-art generative image models."
+readme = "README.md"
+keywords = ["flux", "ai", "ml", "transformers", "mlx", "huggingface", "apple-silicon", "diffusers", "qwen", "qwen-image", "seedvr2", "z-image"]
+authors = [{ name = "Filip Strand", email = "strand.filip@gmail.com" }]
+maintainers = [{ name = "Filip Strand", email = "strand.filip@gmail.com" }]
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = [
+    "filelock>=3.20.1",
+    "fonttools>=4.60.2",
+    "huggingface-hub>=1.1.6,<2.0",
+    "hf-transfer>=0.1.9,<1.0",
+    "matplotlib>=3.9.2,<4.0",
+    "mlx>=0.27.0,<0.32.0; sys_platform=='darwin'",
+    "mlx[cuda13]>=0.30.3,<0.32.0; sys_platform=='linux'",
+    "numpy>=2.0.1,<3.0",
+    "opencv-python>=4.10.0,<5.0",
+    "piexif>=1.1.3,<2.0",
+    "pillow>=12.1.1",
+    "platformdirs>=4.0,<5.0",
+    "regex>=2024.11.6",
+    "requests>=2.32.4",
+    "safetensors>=0.4.4,<1.0",
+    "sentencepiece>=0.2.1,<1.0",
+    "tokenizers>=0.20.3; python_version>='3.13'",
+    "toml>=0.10.2,<1.0",
+    "torch>=2.7.1,<3.0",
+    "torch>=2.8.0,<3.0; python_version>='3.13'",
+    "tqdm>=4.66.5,<5.0",
+    "transformers>=5.0.0,<6.0",
+    "twine>=6.1.0,<7.0",
+    "urllib3>=2.6.0",
+    "protobuf>=4.25.0,<8.0",
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[project.optional-dependencies]
+dev = [
+    "matplotlib>3.10,<4.0",
+    "pytest>=8.3.0,<9.0",
+    "pytest-timer>=1.0,<2.0",
+    "mlx==0.31.0; sys_platform=='darwin'",
+    "mlx[cuda13]==0.30.3; sys_platform=='linux'",
+]
+
+[project.urls]
+homepage = "https://github.com/filipstrand/mflux"
+
+[project.scripts]
+mflux-generate = "mflux.models.flux.cli.flux_generate:main"
+mflux-generate-flux2 = "mflux.models.flux2.cli.flux2_generate:main"
+mflux-generate-flux2-edit = "mflux.models.flux2.cli.flux2_edit_generate:main"
+mflux-generate-controlnet = "mflux.models.flux.cli.flux_generate_controlnet:main"
+mflux-generate-in-context = "mflux.models.flux.cli.flux_generate_in_context_dev:main"
+mflux-generate-in-context-edit = "mflux.models.flux.cli.flux_generate_in_context_edit:main"
+mflux-generate-in-context-catvton = "mflux.models.flux.cli.flux_generate_in_context_catvton:main"
+mflux-generate-fill = "mflux.models.flux.cli.flux_generate_fill:main"
+mflux-generate-depth = "mflux.models.flux.cli.flux_generate_depth:main"
+mflux-generate-redux = "mflux.models.flux.cli.flux_generate_redux:main"
+mflux-generate-kontext = "mflux.models.flux.cli.flux_generate_kontext:main"
+mflux-generate-qwen = "mflux.models.qwen.cli.qwen_image_generate:main"
+mflux-generate-qwen-edit = "mflux.models.qwen.cli.qwen_image_edit_generate:main"
+mflux-generate-fibo = "mflux.models.fibo.cli.fibo_generate:main"
+mflux-generate-fibo-edit = "mflux.models.fibo.cli.fibo_edit:main"
+mflux-generate-z-image = "mflux.models.z_image.cli.z_image_generate:main"
+mflux-generate-z-image-turbo = "mflux.models.z_image.cli.z_image_turbo_generate:main"
+mflux-refine-fibo = "mflux.models.fibo_vlm.cli.fibo_refine:main"
+mflux-inspire-fibo = "mflux.models.fibo_vlm.cli.fibo_inspire:main"
+mflux-concept = "mflux.models.flux.cli.flux_concept:main"
+mflux-concept-from-image = "mflux.models.flux.cli.flux_concept_from_image:main"
+mflux-save = "mflux.models.common.cli.save:main"
+mflux-save-depth = "mflux.models.depth_pro.cli.save_depth:main"
+mflux-train = "mflux.models.common.cli.train:main"
+mflux-upscale-controlnet = "mflux.models.flux.cli.flux_upscale:main"
+mflux-upscale-seedvr2 = "mflux.models.seedvr2.cli.seedvr2_upscale:main"
+mflux-lora-library = "mflux.models.common.cli.lora_library:main"
+mflux-info = "mflux.models.common.cli.info:main"
+mflux-completions = "mflux.cli.completions.install:main"
+
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+target-version = "py310"
+respect-gitignore = true
+
+[tool.ruff.lint]
+select = ["BLE", "E4", "E7", "E9", "F", "I", "ICN", "LOG", "PERF", "W"]
+ignore = []
+fixable = ["ALL"]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = false
+docstring-code-line-length = "dynamic"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = '-v --failed-first --showlocals --tb=long --full-trace -m "not high_memory_requirement"'
+filterwarnings = [
+    "ignore::DeprecationWarning:transformers\\.models\\.clip\\.tokenization_clip",
+    "ignore:builtin type SwigPyPacked has no __module__ attribute:DeprecationWarning",
+    "ignore:builtin type SwigPyObject has no __module__ attribute:DeprecationWarning",
+    "ignore:builtin type swigvarlink has no __module__ attribute:DeprecationWarning",
+]
+markers = [
+    "fast: marks tests as fast (no image generation)",
+    "slow: marks tests as slow (generates images)",
+    "high_memory_requirement: marks tests that require high memory (deselect with '-m \"not high_memory_requirement\"')",
+]
+
+[tool.ruff.lint.isort]
+case-sensitive = false
+combine-as-imports = true
+force-wrap-aliases = true
+from-first = false
+known-first-party = ["src"]
+relative-imports-order = "furthest-to-closest"
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+
+[tool.mypy]
+disable_error_code = [
+    "annotation-unchecked",
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "import-untyped",
+    "index",
+    "union-attr",
+    "return",
+    "return-value",
+    "var-annotated",
+]
+error_summary = true
+ignore_missing_imports = true
+implicit_optional = true
+python_version = "3.12"

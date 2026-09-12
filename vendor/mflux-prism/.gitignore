@@ -1,0 +1,29 @@
+.idea
+.vscode
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+.venv
+*.lock  # created by uv sync
+*.png
+*.jpg
+*.pyc
+*.safetensors
+*.json
+!src/mflux/models/common/training/_example/train.json
+!tests/training/config/train.json
+tests/training/tmp/
+
+*.egg-info
+
+# build/ generated from 'pip install -e .' in developer mode
+build/
+.gz
+.fdb_latexmk
+.fls
+.aux
+.log

@@ -1,0 +1,170 @@
+:root {
+    --ps-bg-main: #181818;
+    --ps-bg-surface: #222222;
+    --ps-bg-panel: #282828;
+    --ps-bg-input: #1a1a1a;
+    --ps-bg-hover: #323232;
+    --ps-bg-active: #3e3e3e;
+    --ps-border: #383838;
+    --ps-border-light: #4a4a4a;
+    --ps-text: #e0e0e0;
+    --ps-text-dim: #989898;
+    --ps-accent: #0078d4;
+    --ps-accent-hover: #1084d8;
+    --ps-cyan: #00c8ff;
+    --ps-danger: #e81123;
+    --ps-header-h: 38px;
+    --ps-optbar-h: 36px;
+    --ps-toolbar-w: 48px;
+    --ps-sidebar-w: 400px;
+    --ps-statusbar-h: 26px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 12px; }
+body { background: var(--ps-bg-main); color: var(--ps-text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
+
+/* Top Photoshop Menu Bar */
+.ps-menubar {
+    height: var(--ps-header-h); background: var(--ps-bg-surface); border-bottom: 1px solid var(--ps-border); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; z-index: 100;
+}
+.ps-app-title { font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #fff; }
+.ps-badge { background: var(--ps-accent); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 3px; }
+
+/* Photoshop Tool Options Bar */
+.ps-options-bar {
+    height: var(--ps-optbar-h); background: var(--ps-bg-panel); border-bottom: 1px solid var(--ps-border); display: flex; align-items: center; padding: 0 12px; gap: 14px; font-size: 11px; z-index: 90;
+}
+.ps-opt-group { display: flex; align-items: center; gap: 6px; }
+.ps-opt-label { color: var(--ps-text-dim); }
+
+/* Workspace Grid (Canvas Stage, Dock Panels) */
+.ps-workspace {
+    display: grid; grid-template-columns: 1fr var(--ps-sidebar-w); height: calc(100vh - var(--ps-header-h) - var(--ps-optbar-h) - var(--ps-statusbar-h)); overflow: hidden;
+}
+
+/* Left Slim Vertical Toolbar */
+.ps-toolbar {
+    background: var(--ps-bg-surface); border-right: 1px solid var(--ps-border); display: flex; flex-direction: column; align-items: center; padding: 8px 0; gap: 4px; z-index: 80;
+}
+.ps-tool-btn {
+    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; color: var(--ps-text-dim); background: transparent; border: 1px solid transparent; transition: all 0.1s; font-size: 16px;
+}
+.ps-tool-btn:hover { background: var(--ps-bg-hover); color: #fff; }
+.ps-tool-btn.active { background: var(--ps-bg-active); border-color: var(--ps-border-light); color: var(--ps-cyan); }
+.ps-tool-divider { width: 28px; height: 1px; background: var(--ps-border); margin: 4px 0; }
+
+/* Central Canvas Viewport */
+.ps-canvas-viewport {
+    background: #111111; position: relative; overflow: auto; display: flex; align-items: center; justify-content: center;
+    background-image: linear-gradient(45deg, #181818 25%, transparent 25%), linear-gradient(-45deg, #181818 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #181818 75%), linear-gradient(-45deg, transparent 75%, #181818 75%);
+    background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+.ps-canvas-stage {
+    position: relative; box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85); border: 1px solid #333; line-height: 0; background: #000; border-radius: 2px;
+}
+#mainCanvas { display: block; max-width: 100%; max-height: calc(100vh - 280px); object-fit: contain; }
+
+/* Fullscreen Blocking Progress Overlay with Prominent ETA */
+.ps-hud-progress {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(10, 10, 10, 0.78); backdrop-filter: blur(8px);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 9999;
+}
+.ps-hud-modal {
+    background: #1e1e1e; border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px; padding: 24px 32px; width: 440px; max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9); display: flex; flex-direction: column; gap: 14px;
+}
+.ps-hud-eta-huge {
+    font-size: 28px; font-weight: 800; color: var(--ps-cyan); text-align: center; letter-spacing: -0.5px;
+}
+.ps-hud-bar { width: 100%; background: #333; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.ps-hud-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--ps-accent), var(--ps-cyan)); transition: width 0.2s; }
+
+/* Right Inspector Dock */
+.ps-sidebar {
+    background: var(--ps-bg-surface); border-left: 1px solid var(--ps-border); display: flex; flex-direction: column; overflow-y: auto; padding: 14px; gap: 14px; z-index: 80;
+}
+
+/* UI Forms & Photoshop Elements */
+.ps-panel-box {
+    background: var(--ps-bg-panel); border: 1px solid var(--ps-border); border-radius: 6px; padding: 10px 12px;
+}
+.ps-panel-title {
+    font-weight: 700; font-size: 12px; color: #fff; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;
+}
+.ps-panel-title:hover { color: var(--ps-cyan); }
+.ps-panel-toggle { font-size: 10px; color: var(--ps-text-dim); transition: transform 0.2s; display: inline-block; }
+.ps-panel-box.collapsed .ps-panel-toggle { transform: rotate(-90deg); }
+.ps-panel-box.collapsed .ps-panel-body { display: none; }
+.ps-panel-body { margin-top: 10px; }
+.ps-label { font-weight: 600; color: var(--ps-text); margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+.ps-input, .ps-textarea, .ps-select {
+    width: 100%; background: var(--ps-bg-input); border: 1px solid var(--ps-border); border-radius: 4px; padding: 6px 8px; color: var(--ps-text); font-size: 12px; outline: none; transition: border-color 0.2s;
+}
+.ps-input:focus, .ps-textarea:focus, .ps-select:focus { border-color: var(--ps-cyan); }
+.ps-textarea { resize: vertical; min-height: 60px; }
+
+.ps-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ps-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.ps-pill {
+    background: var(--ps-bg-panel); color: var(--ps-text); padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; border: 1px solid var(--ps-border);
+}
+.ps-pill:hover { background: var(--ps-bg-hover); border-color: var(--ps-border-light); }
+.ps-pill.active { border-color: var(--ps-cyan); color: var(--ps-cyan); background: var(--ps-bg-active); }
+
+.ps-suggestion-pill { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; line-height: 1.2; border-color: var(--ps-border); background: var(--ps-bg-input); }
+.ps-suggestion-pill:hover { border-color: var(--ps-cyan); color: var(--ps-cyan); background: var(--ps-bg-hover); }
+#suggestionChips { max-height: 260px; overflow-y: auto; padding-right: 2px; }
+#suggestionChips::-webkit-scrollbar { width: 6px; }
+#suggestionChips::-webkit-scrollbar-thumb { background: var(--ps-border-light); border-radius: 3px; }
+
+/* Prompt suggestions wrap subtle scrollbar */
+#promptSuggestionsWrap { scrollbar-width: thin; }
+
+.ps-btn-primary {
+    width: 100%; background: var(--ps-accent); color: #fff; font-weight: 700; border: none; border-radius: 4px; padding: 10px; font-size: 13px; cursor: pointer; transition: background 0.15s, transform 0.05s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+}
+.ps-btn-primary:hover { background: var(--ps-accent-hover); }
+.ps-btn-primary:active { transform: scale(0.99); }
+.ps-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Photoshop Layers UI */
+.ps-layer-card {
+    background: var(--ps-bg-input); border: 1px solid var(--ps-border); border-radius: 5px; padding: 10px; margin-bottom: 8px;
+}
+.ps-layer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+
+/* Semantic Region Chips */
+.ps-seg-chip {
+    display: flex; align-items: center; justify-content: space-between; padding: 5px 8px; border-radius: 4px; background: var(--ps-bg-panel); border: 1px solid var(--ps-border); cursor: pointer; font-size: 11px; margin-bottom: 4px; transition: all 0.1s;
+}
+.ps-seg-chip:hover { border-color: var(--ps-border-light); }
+.ps-seg-chip.selected { border-color: var(--ps-cyan); background: var(--ps-bg-active); }
+.ps-color-swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; margin-right: 6px; border: 1px solid rgba(255,255,255,0.2); }
+
+/* LoRA Adapter Rows */
+.lora-row {
+    background: var(--ps-bg-input);
+    border: 1px solid var(--ps-border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-bottom: 6px;
+}
+.lora-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.lora-scale-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Bottom Status Bar */
+.ps-statusbar {
+    height: var(--ps-statusbar-h); background: var(--ps-bg-surface); border-top: 1px solid var(--ps-border); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 11px; color: var(--ps-text-dim); z-index: 100;
+}

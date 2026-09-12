@@ -1,0 +1,16 @@
+.venv*
+models/
+outputs/
+*.safetensors
+*.gguf
+*.bin
+*.png
+*.jpg
+*.jpeg
+*.mp4
+*.avi
+*.webm
+__pycache__/
+*.pyc
+.DS_Store
+*.log

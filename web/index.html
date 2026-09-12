@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photoshop Studio Pro • FLUX.2 Klein 4B Ternary (MLX)</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Top Photoshop Menu Bar -->
+    <div class="ps-menubar">
+        <div class="ps-app-title">
+            <span>🎨 Photoshop Studio Pro</span>
+            <span class="ps-badge">FLUX.2 Klein 4B Ternary</span>
+            <span style="color:var(--ps-text-dim); font-weight:normal; font-size:11px;">(Apple Silicon MLX 3-Bit)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <input type="file" id="globalRefImages" accept="image/*" multiple style="display:none" onchange="handleImage(event)">
+            <button type="button" class="ps-pill" onclick="document.getElementById('globalRefImages').click()" style="background:linear-gradient(135deg, var(--ps-accent), var(--ps-cyan)); color:#000; font-weight:700;">
+                📁 Load Reference Image(s)
+            </button>
+            <span>Canvas: <strong id="docDimsStatus" style="color:#fff;">512 × 512 px</strong></span>
+        </div>
+    </div>
+
+    <!-- Photoshop Tool Options Bar -->
+    <div class="ps-options-bar">
+        <div class="ps-opt-group">
+            <span class="ps-opt-label">Brush:</span>
+            <input type="range" id="brushSize" min="5" max="150" value="40" oninput="document.getElementById('brushSizeVal').innerText = this.value + 'px'" style="width:90px; accent-color:var(--ps-cyan);">
+            <strong id="brushSizeVal" style="color:var(--ps-cyan);">40px</strong>
+        </div>
+
+        <div class="ps-opt-group" style="margin-left:auto; display:flex; align-items:center; gap:6px;">
+            <span style="font-size:10px; color:var(--ps-text-dim);">
+                <span style="color:#ef4444; font-weight:600;">● Red</span>: Inpaint (Generate) &nbsp;•&nbsp; <span style="color:#aaa;">Unmasked</span>: Protected Original
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Photoshop Workspace Grid -->
+    <div class="ps-workspace">
+
+        <!-- Central Stage / Viewport -->
+        <div class="ps-canvas-viewport">
+            <div class="ps-canvas-stage">
+                <canvas id="mainCanvas" width="512" height="512"></canvas>
+            </div>
+        </div>
+
+        <!-- Fullscreen Protective Progress HUD -->
+        <div class="ps-hud-progress" id="loadingHud">
+            <div class="ps-hud-modal">
+                <div style="text-align:center; font-size:12px; color:var(--ps-text-dim); text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                    🚀 Generating Image (FLUX.2 Klein)
+                </div>
+                <div class="ps-hud-eta-huge" id="hudEta">ETA: Calculating...</div>
+                <div class="ps-hud-bar">
+                    <div class="ps-hud-fill" id="hudBar"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--ps-text-dim);">
+                    <strong id="hudStage" style="color:#fff;">Initializing Pipeline...</strong>
+                    <span id="hudPct">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side Dock / Inspector -->
+        <div class="ps-sidebar">
+
+            <!-- Prompt Panel -->
+            <div class="ps-panel-box" id="panelPrompt">
+                <div class="ps-panel-title" onclick="togglePanel('panelPrompt')">
+                    <span>✨ Prompt &amp; Guidance</span>
+                    <span class="ps-panel-toggle">▼</span>
+                </div>
+                <div class="ps-panel-body">
+                    <div style="margin-bottom:8px;">
+                        <div class="ps-label">Positive Prompt:</div>
+                        <textarea id="prompt" class="ps-textarea" placeholder="Describe generation or inpaint modification...">a high quality studio photo, detailed lighting, sharp focus</textarea>
+                    </div>
+
+                    <!-- Prompt Suggestions: 20 txt2img / 20 img2img (auto-switch on ref) -->
+                    <div id="promptSuggestionsWrap" style="margin-top:8px; border-top:1px solid var(--ps-border); padding-top:8px;">
+                        <div class="ps-label" style="margin-bottom:6px; font-size:11px;">
+                            <span id="suggestionLabel">💡 20 Vorschläge — Text-to-Image</span>
+                            <span id="suggestionHint" style="font-weight:normal; color:var(--ps-text-dim); font-size:10px;">Klick zum Einfügen</span>
+                        </div>
+                        <div id="suggestionChips" class="ps-pills" style="gap:5px;"></div>
+                    </div>
+                    
+                    <!-- Negative Prompt (Collapsible) -->
+                    <div style="margin-top:6px; border-top:1px solid var(--ps-border); padding-top:6px;">
+                        <div class="ps-panel-title" onclick="togglePanel('panelNegPrompt')" style="font-size:11px; color:var(--ps-text-dim);">
+                            <span>Negative Prompt</span>
+                            <span class="ps-panel-toggle" id="negToggleIcon">▶</span>
+                        </div>
+                        <div id="panelNegPrompt" style="display:none; margin-top:6px;">
+                            <input type="text" id="negative_prompt" class="ps-input" value="low quality, blurry, deformed, distorted, artifacts">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Dimensions & Ratios -->
+            <div class="ps-panel-box" id="panelCanvasSizing">
+                <div class="ps-panel-title" onclick="togglePanel('panelCanvasSizing')">
+                    <span>📐 Canvas Sizing &amp; Aspects</span>
+                    <span class="ps-panel-toggle">▼</span>
+                </div>
+                <div class="ps-panel-body">
+                    <div class="ps-pills" style="margin-bottom:8px;">
+                        <button class="ps-pill active" onclick="setSize(512, 512, this)">512×512 (1:1)</button>
+                        <button class="ps-pill" onclick="setSize(512, 768, this)">512×768 (2:3)</button>
+                        <button class="ps-pill" onclick="setSize(768, 512, this)">768×512 (3:2)</button>
+                        <button class="ps-pill" onclick="setSize(768, 768, this)">768×768 (1:1)</button>
+                        <button class="ps-pill" onclick="setSize(640, 960, this)">640×960 (Portrait)</button>
+                    </div>
+                    <div class="ps-row-2">
+                        <div>
+                            <div class="ps-label">Width (px):</div>
+                            <input type="number" id="width" class="ps-input" value="512" step="16" min="256" max="2048">
+                        </div>
+                        <div>
+                            <div class="ps-label">Height (px):</div>
+                            <input type="number" id="height" class="ps-input" value="512" step="16" min="256" max="2048">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inference Settings (Collapsed by default) -->
+            <div class="ps-panel-box collapsed" id="panelFlux">
+                <div class="ps-panel-title" onclick="togglePanel('panelFlux')">
+                    <span>⚡ FLUX Sampling Engine</span>
+                    <span class="ps-panel-toggle">▼</span>
+                </div>
+                <div class="ps-panel-body">
+                    <div class="ps-row-2" style="margin-bottom:8px;">
+                        <div>
+                            <div class="ps-label">Steps (4B Ternary):</div>
+                            <input type="number" id="steps" class="ps-input" value="4" min="1" max="20">
+                        </div>
+                        <div>
+                            <div class="ps-label">CFG Scale:</div>
+                            <input type="number" id="cfg" class="ps-input" value="1.0" step="0.1" min="1.0" max="10.0">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="ps-label">Seed (-1 for random):</div>
+                        <input type="number" id="seed" class="ps-input" value="42">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multi-LoRA Engine (Collapsed by default) -->
+            <div class="ps-panel-box collapsed" id="panelLoras">
+                <div class="ps-panel-title" onclick="togglePanel('panelLoras')">
+                    <span>🧬 Multi-LoRA Adapters</span>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <button type="button" class="ps-pill" onclick="event.stopPropagation(); addLoraRow()">+ Add</button>
+                        <span class="ps-panel-toggle">▼</span>
+                    </div>
+                </div>
+                <div class="ps-panel-body">
+                    <div id="loraContainer"></div>
+                </div>
+            </div>
+
+            <!-- Object Mask & Segmentation Panel -->
+            <div class="ps-panel-box" id="panelSeg" style="border-left: 3px solid #10b981;">
+                <div class="ps-panel-title" onclick="togglePanel('panelSeg')">
+                    <span>✂️ Mask &amp; Segmentation</span>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <button type="button" class="ps-pill" id="btnRunSeg" onclick="event.stopPropagation(); runAiModelSegmentation()" style="background:linear-gradient(135deg, #10b981, #06b6d4); color:#000; font-weight:700;">✂️ Auto-Detect</button>
+                        <span class="ps-panel-toggle">▼</span>
+                    </div>
+                </div>
+                
+                <div class="ps-panel-body">
+                    <!-- Integrated Mask Drawing & Selection Tools -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--ps-border);">
+                        <div class="ps-pills" style="margin:0;">
+                            <button type="button" class="ps-pill active" id="toolBrush" onclick="selectTool('brush')" title="Brush">🖌️ Brush</button>
+                            <button type="button" class="ps-pill" id="toolEraser" onclick="selectTool('eraser')" title="Eraser">🧽 Eraser</button>
+                            <button type="button" class="ps-pill" id="toolWand" onclick="selectTool('wand')" title="Magic Wand">🪄 Wand</button>
+                            <button type="button" class="ps-pill" id="toolFill" onclick="selectTool('fill')" title="Fill All">🪣 Fill</button>
+                        </div>
+                        <div class="ps-pills" style="margin:0;">
+                            <button type="button" class="ps-pill" onclick="undoMask()" title="Undo">↩️</button>
+                            <button type="button" class="ps-pill" onclick="clearMask()" title="Clear">🗑️</button>
+                        </div>
+                    </div>
+
+                    <!-- Mask Sliders: Feather & Preview Opacity -->
+                    <div class="ps-row-2" style="margin-bottom:8px;">
+                        <div>
+                            <div class="ps-label" style="font-size:10px;">
+                                <span>Edge Feather:</span>
+                                <strong id="maskFeatherVal" style="color:var(--ps-cyan);">8px</strong>
+                            </div>
+                            <input type="range" id="maskFeather" min="0" max="40" value="8"
+                                oninput="document.getElementById('maskFeatherVal').innerText = this.value + 'px'; renderLiveComposite();"
+                                style="width:100%; accent-color:var(--ps-cyan);">
+                        </div>
+                        <div>
+                            <div class="ps-label" style="font-size:10px;">
+                                <span>Mask Opacity:</span>
+                                <strong id="maskOpacityVal" style="color:var(--ps-cyan);">100%</strong>
+                            </div>
+                            <input type="range" id="maskOpacity" min="10" max="100" value="100"
+                                oninput="document.getElementById('maskOpacityVal').innerText = this.value + '%'; renderLiveComposite();"
+                                style="width:100%; accent-color:var(--ps-cyan);">
+                        </div>
+                    </div>
+
+                    <div id="segStatusLabel" style="font-size:10px; color:var(--ps-text-dim); margin-bottom:6px;">
+                        Auto-detect object segments or paint directly with brush.
+                    </div>
+
+                    <div id="segRegionsContainer" style="display:none; margin-top:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-weight:600; color:#fff; font-size:11px;">Detected Regions:</span>
+                            <div class="ps-pills" style="margin:0;">
+                                <button type="button" class="ps-pill" onclick="selectAllSegments(true)">All</button>
+                                <button type="button" class="ps-pill" onclick="selectAllSegments(false)">None</button>
+                                <button type="button" class="ps-pill" onclick="invertAllSegments()">Invert</button>
+                            </div>
+                        </div>
+                        <div id="segChipsList"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom Status Bar -->
+    <div class="ps-statusbar">
+        <div>
+            <span>Status: <strong id="statusDuration" style="color:#fff;">Ready</strong></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:16px;">
+            <span>Canvas: <strong id="statusRes">512×512</strong></span>
+            <button class="ps-btn-primary" id="genBtn" onclick="generate()" style="margin:0; padding:4px 18px; font-size:11px; width:auto; background:linear-gradient(135deg, var(--ps-accent), var(--ps-cyan)); color:#000;">
+                🚀 Generate
+            </button>
+        </div>
+    </div>
+
+    <script src="/static/segmentation.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
