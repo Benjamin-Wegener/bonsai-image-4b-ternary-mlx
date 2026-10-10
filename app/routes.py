@@ -292,6 +292,16 @@ def generate_images(req: T2IRequest):
                 scheduler="flow_match_euler_discrete",
             )
 
+            # True image-to-image (the former reference-edit path, which always started from pure noise, is gone):
+            # start at sigma(strength) from the noised original latents. strength=1.0 starts from pure noise,
+            # lower values stay closer to the init image.
+            strength = float(req.strength if req.strength is not None else 0.35)
+            i2i_start = max(0, min(req.steps - 1, int(round(req.steps * (1.0 - min(1.0, max(0.0, strength)))))))
+            if i2i_start > 0:
+                sg = float(config.scheduler.sigmas[i2i_start])
+                latents = ((1.0 - sg) * clean_orig_latents + sg * init_noise).astype(mx.bfloat16)
+                mx.eval(latents)
+
             ctx = p._model.callbacks.start(seed=seed, prompt=req.prompt, config=config)
             ctx.before_loop(latents)
 
@@ -301,7 +311,7 @@ def generate_images(req: T2IRequest):
             # ---------------------------------------------------------------
             # Denoising loop
             # ---------------------------------------------------------------
-            for t in config.time_steps:
+            for t in list(config.time_steps)[i2i_start:]:
                 ts = config.scheduler.timesteps[t]
 
                 noise = p._model.transformer(

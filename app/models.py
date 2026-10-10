@@ -31,6 +31,6 @@ class T2IRequest(BaseModel):
     lora_path: Optional[str] = Field(default=None, description="Single LoRA path")
     lora_scale: Optional[float] = Field(default=1.0, description="Single LoRA scale")
     loras: Optional[List[LoRAItem]] = Field(default_factory=list, description="List of LoRAs")
-    strength: Optional[float] = Field(default=0.35, description="Image strength")
+    strength: Optional[float] = Field(default=0.35, description="img2img strength: 1.0 = start from noise, lower = closer to init_image")
     mode: Optional[str] = Field(default="img2img", description="Mode")
     batch_count: int = Field(default=1, description="Number of images")
